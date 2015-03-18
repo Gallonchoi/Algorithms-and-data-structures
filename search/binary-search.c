@@ -20,18 +20,16 @@ bool test() {
     for(int i = 0; i < 100; i++) {
         lst[i] = i;
     }
-    for(int i = 0; i < 100; i++) {
-        if(binary_search(lst, 0, 100, i) == false) {
-            return false;
-        }
-    }
-    for(int i = -10; i < 0; i++) {
-        if(binary_search(lst, 0, 100, i) == true) {
-            return false;
-        }
-    }
-    for(int i = 100; i < 110; i++) {
-        if(binary_search(lst, 0, 100, i) == true) {
+    for(int i = -10; i < 110; i++) {
+        if(i < 0) {
+            if(binary_search(lst, 0, 100, i) == true) {
+                return false;
+            }
+        } else if(i >= 100) {
+            if(binary_search(lst, 0, 100, i) == true) {
+                return false;
+            }
+        } else if(binary_search(lst, 0, 100, i) == false) {
             return false;
         }
     }
