@@ -1,5 +1,6 @@
 object HeapSort {
   def heapSort(list: Array[Int]): Array[Int] = {
+    buildHeap(list)
     for(i <- list.length - 1 until 0 by -1) {
       swap(list, 0, i)
       heapify(list, 0, i)
@@ -7,9 +8,15 @@ object HeapSort {
     list
   }
 
+  private def buildHeap(list: Array[Int]) {
+    for(i <- list.length / 2 - 1 until -1 by -1) {
+      heapify(list, i, list.length)
+    }
+  }
+
   @scala.annotation.tailrec
   private def heapify(list: Array[Int], idx: Int, max: Int) {
-    (left(idx), right(idx))  match {
+    (left(idx), right(idx)) match {
       case (l, r) if r < max && list(r) > list(l) && list(r) > list(idx) => {
         swap(list, idx, r)
         heapify(list, r, max)
@@ -33,7 +40,7 @@ object HeapSort {
   }
 
   def main(args: Array[String]) {
-    val list = Array(9, 8, 7, 6, 5, 4, 3, 2, 1)
+    val list = Array(1, 5, 4, 2, 9, 10, -10, -2, 6, 8, 7, 6, 5, -6, 4, 3, 2, 1)
     println(list mkString(", "))
     val t = heapSort(list)
     println(t mkString(", "))
