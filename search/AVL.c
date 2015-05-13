@@ -7,6 +7,8 @@ typedef struct treeNode {
     struct treeNode *left, *right;
 } *tNode, tree;
 
+void display_avl(tNode t);
+
 int max(int x, int y) {
     return x > y ? x : y;
 }
@@ -163,15 +165,16 @@ tNode balance(tNode root, tNode anchor) {
         } else if(get_height(anchor->left) - get_height(anchor->right) == 2) {
             anchor = LL(anchor);
         }
-        if(head != NULL) {
+        if(head) {
             if(anchor_in_left) {
                 head->left = anchor;
             } else {
                 head->right = anchor;
             }
+        } else {
+            root = anchor;
         }
         anchor->height = get_child_max_height(anchor) + 1;
-        root = anchor;
         anchor = find_parent(root, anchor->data);
     }
     return root;
@@ -180,14 +183,13 @@ tNode balance(tNode root, tNode anchor) {
 tNode delete(tNode root, int e) {
     if( ! root) return NULL;
 
-    /* tNode route[100]; */
     tNode target, head;
     int target_in_left;
 
     target = find(root, e);
-    head = find_parent(root, e);
 
     if(target) {
+        head = find_parent(root, e);
         target_in_left = head ? target == head->left : 0;
         if(target->left || target->right) {
             /* target has childs  */
@@ -204,6 +206,7 @@ tNode delete(tNode root, int e) {
                 r_node->right = target->right;
 
                 if( ! head) {
+                    root = r_node;
                     // target is root
                 } else {
                     if(target_in_left) {
@@ -220,6 +223,7 @@ tNode delete(tNode root, int e) {
                 /* target has only right child */
                 if( ! head) {
                     // target is root
+                    root = target->right;
                 } else {
                     if(target_in_left) {
                         head->left = target->right;
@@ -235,6 +239,7 @@ tNode delete(tNode root, int e) {
             /* target is a leaf(has no child) */
             if( ! head) {
                 // target is root
+                root = NULL;
             } else {
                 if(target_in_left) {
                     head->left = NULL;
@@ -242,9 +247,6 @@ tNode delete(tNode root, int e) {
                     head->right = NULL;
                 }
             }
-            printf("%d\n", head->right->data);
-            tNode anchor;
-            anchor = head;
             root = balance(root, head);
             free(target);
         }
@@ -278,12 +280,12 @@ void display_avl(tNode t) {
             avl[sum++] = avl[i]->left;
             avl[sum++] = avl[i]->right;
             if((i+1) % 2 == 0) {
-                printf("[%d ", avl[i]->data);
+                printf("[%d(%d) ", avl[i]->data, avl[i]->height);
             } else {
                 if(i == 0) {
-                    printf("[%d] ", avl[i]->data);
+                    printf("[%d(%d)] ", avl[i]->data, avl[i]->height);
                 } else {
-                    printf("%d] ", avl[i]->data);
+                    printf("%d(%d)] ", avl[i]->data, avl[i]->height);
                 }
             }
         }
@@ -311,8 +313,25 @@ int main(void) {
     }
     printf("\n");
 
+    printf("--------------\n");
+    printf("Init avl: \n");
     display_avl(t);
-    delete(t, 0);
+    t = delete(t, 4);
+    printf("--------------\n");
+    printf("Delete 4: \n");
+    display_avl(t);
+    t = delete(t, 2);
+    printf("--------------\n");
+    printf("Delete 2: \n");
+    display_avl(t);
+    t = delete(t, 0);
+    printf("--------------\n");
+    printf("Delete 0: \n");
+    display_avl(t);
+    t = delete(t, 0);
+
+    printf("--------------\n");
+    printf("Delete 0: \n");
     display_avl(t);
 
     destroy(t);
