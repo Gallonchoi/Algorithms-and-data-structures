@@ -67,13 +67,17 @@ tNode find(tNode t, int e) {
 tNode find_parent(tNode t, int e) {
     if( ! t) return NULL;
     if(e < t->data) {
-        if(t->left->data == e) {
+        if( ! t->left) {
+            return NULL;
+        } else if(t->left->data == e) {
             return t;
         } else {
             return find_parent(t->left, e);
         }
     } else if(e > t->data) {
-        if(t->right->data == e) {
+        if( ! t->right) {
+            return NULL;
+        } else if(t->right->data == e) {
             return t;
         } else {
             return find_parent(t->right, e);
