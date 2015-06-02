@@ -1,146 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
+#include "b-tree.h"
 
-#define degree 2
-#define middle (degree - 1)
-
-typedef enum {true, false} bool;
-
-typedef struct b_tree {
-    int key_num;
-    int key[degree * 2 - 1];
-
-    int child_num;
-    struct b_tree * child[degree * 2];
-} b_tree_t, *b_tree;
-
-bool is_full(b_tree t_node) {
-    return (t_node->key_num == degree * 2 - 1) ? true : false;
-}
-
-void create(b_tree * t_node) {
-    *t_node = (b_tree) malloc (sizeof(b_tree_t));
-    (*t_node)->child_num = 0;
-    (*t_node)->key_num = 0;
-}
-
-void split(b_tree * t_node, b_tree * parent, int idx) {
-    // get the middle key
-    int middle_key = (*t_node)->key[middle];
-    // split current node to two nodes
-    b_tree before, after;
-    // create null node
-    create(&before);
-    create(&after);
-    before->key_num = middle;
-    after->key_num = middle;
-    int i;
-    for(i = 0; i <= middle; i++) {
-        // transfer childs
-        before->child[i] = (*t_node)->child[i];
-        after->child[i] = (*t_node)->child[middle+i+1];
-        // transfer keys
-        if(i < middle) {
-            before->key[i] = (*t_node)->key[i];
-            after->key[i] = (*t_node)->key[middle+i+1];
-        }
-    }
-
-    // link the new two nodes
-    if(parent) {
-        printf("idx = %d\n", idx);
-        // move old keys and childs
-        if(idx < (*parent)->key_num) {
-            for(i = (*parent)->key_num - 1; i >= idx; i--) {
-                (*parent)->key[i+1] = (*parent)->key[i];
-                (*parent)->child[i+2] = (*parent)->child[i+1];
-            }
-        }
-        // insert new key
-        (*parent)->key[idx] = middle_key;
-        (*parent)->child[idx] = before;
-        (*parent)->child[idx + 1] = after;
-        (*parent)->child_num ++;
-        (*parent)->key_num ++;
-    } else {
-        /* t_node is root */
-        /* create new root */
-        b_tree new_root;
-        create(&new_root);
-        new_root->key_num = 1;
-        new_root->key[0] = middle_key;
-        new_root->child_num = 2;
-        new_root->child[0] = before;
-        new_root->child[1] = after;
-        /* destroy old root */
-        *t_node = new_root;
-    }
-}
-
-void insert(b_tree * root, int key) {
-    if( ! *root) {
-        exit(1);
-    } else {
-        b_tree * t_node, * parent;
-        int i, j, idx;
-        t_node = root;
-        parent = NULL;
-        while(1) {
-            // split if the current node is full
-            if(is_full(*t_node) == true) {
-                if( ! parent) {
-                    // root
-                    split(t_node, NULL, 0);
-                } else {
-                    split(t_node, parent, idx);
-                }
-            }
-            // find the position to insert
-            i = 0;
-            while(i < (*t_node)->key_num && key > (*t_node)->key[i]) {
-                i ++;
-            }
-            // insert to its child if it exists
-            if(i < (*t_node)->child_num) {
-                idx = i;
-                parent = t_node;
-                t_node = &(*t_node)->child[i];
-            } else {
-                // insert to current position
-
-                // move keys which after i
-                if(i < (*t_node)->key_num) {
-                    for(j = (*t_node)->key_num; j >= i; j --) {
-                        (*t_node)->key[j+1] = (*t_node)->key[j];
-                    }
-                }
-
-                (*t_node)->key[i] = key;
-                (*t_node)->key_num ++;
-                break;
-            }
-        }
-    }
-}
-
-bool search(b_tree t_node, int key) {
-    int i = 0;
-    while(i < t_node->key_num && key > t_node->key[i]) {
-        i ++;
-    }
-    if(i < t_node->key_num && key == t_node->key[i]) {
-        return true;
-    } else if(t_node->child_num == 0 || t_node->child[i] == NULL) {
-        return false;
-    } else {
-        return search(t_node->child[i], key);
-    }
-}
-
-void delete(b_tree * root, int key) {
-}
-
-int main(void) {
+void test_insert() {
     b_tree root;
     create(&root);
     insert(&root, 1);
@@ -164,11 +27,116 @@ int main(void) {
     printf("child[2]->key_num = %d\n", root->child[2]->key_num);
     printf("child[2]->key[0] = %d\n", root->child[2]->key[0]);
     for(int i = 0; i < 10; i++) {
-        if(search(root, i) == true) {
-            printf("FOUND %d\n", i);
+        result r = search(root, i);
+        if(r.is_found == true) {
+            printf("FOUND %d == %d\n", i, (*r.target_node)->key[r.idx]);
         } else {
             printf("NOT FOUND %d\n", i);
         }
     }
+}
+
+void print_root(b_tree * root) {
+
+    printf("root's key nums = %d\n", (*root)->key_num);
+    printf("root's child nums = %d\n", (*root)->child_num);
+    printf("root's keys: ");
+    for(int i = 0; i < (*root)->key_num; i++) {
+        printf("%d ", (*root)->key[i]);
+    }
+    b_tree child;
+    printf("\n");
+    for(int j = 0; j < (*root)->child_num; j++) {
+        child = (*root)->child[j];
+        printf("root's %dth child's key nums = %d\n", j, child->key_num);
+        printf("keys: ");
+        for(int i = 0; i < child->key_num; i++) {
+            printf("%d  ", child->key[i]);
+        }
+        printf("\n");
+    }
+    for(int j = 0; j < (*root)->child_num; j++) {
+        printf("----------\n");
+        print_root(&(*root)->child[j]);
+    }
+}
+
+void test_delete() {
+    b_tree root;
+    create(&root);
+    for(int i = 1; i <= 10; i++) {
+        insert(&root, i);
+    }
+    print_root(&root);
+    printf("\n=======================\n");
+    delete(&root, 5);
+    printf("deleting 5\n");
+    print_root(&root);
+    printf("\n=======================\n");
+    delete(&root, 7);
+    printf("deleting 7\n");
+    print_root(&root);
+    printf("\n=======================\n");
+    delete(&root, 8);
+    printf("deleting 8\n");
+    print_root(&root);
+    printf("\n=======================\n");
+    delete(&root, 3);
+    printf("deleting 3\n");
+    print_root(&root);
+    printf("\n=======================\n");
+    delete(&root, 2);
+    printf("deleting 2\n");
+    print_root(&root);
+    printf("\n=======================\n");
+    delete(&root, 1);
+    printf("deleting 1\n");
+    print_root(&root);
+}
+
+void test() {
+    b_tree root;
+    create(&root);
+
+    int ran[100], range;
+    range = 100;
+    /* for(int i = 1; i <= range; i++) { */
+    /*     result r = search(root, i); */
+    /*     if(r.is_found == false) { */
+    /*         printf("\nError!\n%d\n", i); */
+    /*         print_root(&root); */
+    /*         return; */
+    /*     } */
+    /* } */
+
+
+
+    srand((int)time(NULL));
+    for(int i = 0; i < range; ++i) {
+        ran[i] = rand() % 100 + 1;
+        insert(&root, ran[i]);
+        printf("[%d]%d ", i, ran[i]);
+        /* result r = search(root, ran[0]); */
+        /* if(r.is_found == false) { */
+        /*     printf("\nError!\n[%d]%d\n", i, ran[i]); */
+        /*     print_root(&root); */
+        /*     return; */
+        /* } */
+    }
+
+    for(int i = 0; i < range; ++i) {
+        result r = search(root, ran[i]);
+        if(r.is_found == false) {
+            printf("\nError!\n");
+            printf("[%d]%d\n", i, ran[i]);
+            print_root(&root);
+            return;
+        }
+    }
+    printf("GOOD\n");
+}
+
+int main(void) {
+    test();
     return 0;
 }
