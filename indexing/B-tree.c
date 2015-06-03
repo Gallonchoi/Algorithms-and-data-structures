@@ -57,41 +57,50 @@ void print_root(b_tree * root) {
     }
     for(int j = 0; j < (*root)->child_num; j++) {
         printf("----------\n");
-        print_root(&(*root)->child[j]);
+        if((*root)->child[j]->child_num > 0) {
+            print_root(&(*root)->child[j]);
+        }
+    }
+}
+
+void print(b_tree * t_node) {
+    int key_num, child_num;
+    key_num = (*t_node)->key_num;
+    child_num = (*t_node)->child_num;
+    for(int i = 0; i < key_num; i++) {
+        if(i < child_num) {
+            print(&(*t_node)->child[i]);
+        }
+        printf("%d ", (*t_node)->key[i]);
+    }
+    if(key_num < child_num) {
+        print(&(*t_node)->child[child_num - 1]);
     }
 }
 
 void test_delete() {
     b_tree root;
     create(&root);
-    for(int i = 1; i <= 10; i++) {
+    int range = 50;
+    for(int i = range; i >= 1; i--) {
         insert(&root, i);
     }
-    print_root(&root);
-    printf("\n=======================\n");
-    delete(&root, 5);
-    printf("deleting 5\n");
-    print_root(&root);
-    printf("\n=======================\n");
-    delete(&root, 7);
-    printf("deleting 7\n");
-    print_root(&root);
-    printf("\n=======================\n");
-    delete(&root, 8);
-    printf("deleting 8\n");
-    print_root(&root);
-    printf("\n=======================\n");
-    delete(&root, 3);
-    printf("deleting 3\n");
-    print_root(&root);
-    printf("\n=======================\n");
-    delete(&root, 2);
-    printf("deleting 2\n");
-    print_root(&root);
-    printf("\n=======================\n");
-    delete(&root, 1);
-    printf("deleting 1\n");
-    print_root(&root);
+    for(int i = range; i >= 1; i--) {
+        delete(&root, i);
+        printf("[%d]: ", i);
+        print(&root);
+        printf("\n");
+    }
+    create(&root);
+    for(int i = range; i >= 1; i--) {
+        insert(&root, i);
+    }
+    for(int i = 1; i <= range; i++) {
+        delete(&root, i);
+        printf("[%d]: ", i);
+        print(&root);
+        printf("\n");
+    }
 }
 
 void test() {
@@ -133,10 +142,9 @@ void test() {
             return;
         }
     }
-    printf("GOOD\n");
 }
 
 int main(void) {
-    test();
+    test_delete();
     return 0;
 }
