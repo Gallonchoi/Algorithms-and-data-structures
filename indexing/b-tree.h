@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-#define degree 2  // 结点二分之一度数
+#define degree 2  // 最小度数
 #define middle (degree - 1)  // 结点(除根)最少关键字数目
 
 typedef enum {true, false} bool;
@@ -31,7 +31,7 @@ void split(b_tree * t_node, b_tree * parent, int idx);  // 分离结点
 void combine(b_tree * parent, int idx);  // 合并结点
 result search_process(b_tree t_node, b_tree p_node, int p_idx, int key);  // 搜索关键字-子函数
 void delete_process(b_tree * t_node, int idx, b_tree * parent, int p_idx);  // 删除关键字-子函数
-void balance(b_tree * parent, int t_idx);
+void balance(b_tree * parent, int t_idx);  // 平衡结点
 
 bool is_full(b_tree t_node) {
     return (t_node->key_num == degree * 2 - 1) ? true : false;
@@ -43,6 +43,13 @@ void create(b_tree * t_node) {
     (*t_node)->key_num = 0;
 }
 
+
+/**
+ * @param t_node
+ * @param parent
+ * @param idx
+ * @return void
+ */
 void split(b_tree * t_node, b_tree * parent, int idx) {
     // 获取待提升关键字
     int middle_key = (*t_node)->key[middle];
@@ -183,19 +190,22 @@ void insert(b_tree * root, int key) {
 }
 
 result search_process(b_tree t_node, b_tree parent, int t_idx, int key) {
-    int i = 0;
-    while(i < t_node->key_num && key > t_node->key[i]) {
-        i ++;
+    int idx = 0;
+    while(idx < t_node->key_num && key > t_node->key[idx]) {
+        // 查找目标关键字在当前结点中的索引
+        idx ++;
     }
-    if(i < t_node->key_num && key == t_node->key[i]) {
+    if(idx < t_node->key_num && key == t_node->key[idx]) {
+        // 目标关键字在当前结点中
         if(parent && t_node->key_num < degree) {
+            // 当前结点关键字少于最小度数, 平衡该结点
             balance(&parent, t_idx);
             return search(parent, key);
         }
         result r;
         r.is_found = true;
         r.target_node = &t_node;
-        r.idx = i;
+        r.idx = idx;
         if(parent) {
             r.parent_node = &parent;
             r.t_idx = t_idx;
@@ -203,16 +213,19 @@ result search_process(b_tree t_node, b_tree parent, int t_idx, int key) {
             r.parent_node = NULL;
         }
         return r;
-    } else if(t_node->child_num == 0 || t_node->child[i] == NULL) {
+    } else if(t_node->child_num == 0 || t_node->child[idx] == NULL) {
+        // 目标关键字不存在
         result r;
         r.is_found = false;
         return r;
     } else {
+        // 目标关键字存在与当前结点的子结点中
         if(parent && t_node->key_num < degree) {
+            // 当前结点关键字少于最小度数, 平衡该结点
             balance(&parent, t_idx);
             return search(parent, key);
         }
-        return search_process(t_node->child[i], t_node, i, key);
+        return search_process(t_node->child[idx], t_node, idx, key);
     }
 }
 
@@ -362,6 +375,7 @@ void delete(b_tree * t_node, int key) {
     b_tree target;
     result r;
     int idx;
+    // 搜索目标关键字所在结点
     r = search(*t_node, key);
     if(r.is_found == true) {
         target = *(r.target_node);

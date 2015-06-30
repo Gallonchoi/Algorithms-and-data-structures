@@ -3,41 +3,7 @@
 #include <time.h>
 #include "b-tree.h"
 
-void test_insert() {
-    b_tree root;
-    create(&root);
-    insert(&root, 1);
-    /* insert(&root, 2); */
-    insert(&root, 3);
-    /* insert(&root, 4); */
-    insert(&root, 5);
-    insert(&root, 7);
-    insert(&root, 6);
-    insert(&root, 4);
-    printf("key num = %d\n", root->key_num);
-    for(int i = 0; i < root->key_num; i++) {
-        printf("key[%d] = %d\n", i, root->key[i]);
-    }
-    printf("child num = %d\n", root->child_num);
-    printf("child[0]->key_num = %d\n", root->child[0]->key_num);
-    printf("child[0]->key[0] = %d\n", root->child[0]->key[0]);
-    printf("child[1]->key_num = %d\n", root->child[1]->key_num);
-    printf("child[1]->key[0] = %d\n", root->child[1]->key[0]);
-    printf("child[1]->key[1] = %d\n", root->child[1]->key[1]);
-    printf("child[2]->key_num = %d\n", root->child[2]->key_num);
-    printf("child[2]->key[0] = %d\n", root->child[2]->key[0]);
-    for(int i = 0; i < 10; i++) {
-        result r = search(root, i);
-        if(r.is_found == true) {
-            printf("FOUND %d == %d\n", i, (*r.target_node)->key[r.idx]);
-        } else {
-            printf("NOT FOUND %d\n", i);
-        }
-    }
-}
-
 void print_root(b_tree * root) {
-
     printf("root's key nums = %d\n", (*root)->key_num);
     printf("root's child nums = %d\n", (*root)->child_num);
     printf("root's keys: ");
@@ -87,17 +53,17 @@ void test_delete() {
     }
     for(int i = range; i >= 1; i--) {
         delete(&root, i);
-        printf("[%d]: ", i);
+        printf("[%02d]: ", i);
         print(&root);
         printf("\n");
     }
-    create(&root);
-    for(int i = range; i >= 1; i--) {
+    int begin, end;
+    begin = 1;
+    end = 50;
+    for(int i = begin; i <= end; i++) {
+        /* print_root(&root); */
         insert(&root, i);
-    }
-    for(int i = 1; i <= range; i++) {
-        delete(&root, i);
-        printf("[%d]: ", i);
+        printf("[%02d]: ", i);
         print(&root);
         printf("\n");
     }
@@ -109,28 +75,12 @@ void test() {
 
     int ran[100], range;
     range = 100;
-    /* for(int i = 1; i <= range; i++) { */
-    /*     result r = search(root, i); */
-    /*     if(r.is_found == false) { */
-    /*         printf("\nError!\n%d\n", i); */
-    /*         print_root(&root); */
-    /*         return; */
-    /*     } */
-    /* } */
-
-
 
     srand((int)time(NULL));
     for(int i = 0; i < range; ++i) {
         ran[i] = rand() % 100 + 1;
         insert(&root, ran[i]);
         printf("[%d]%d ", i, ran[i]);
-        /* result r = search(root, ran[0]); */
-        /* if(r.is_found == false) { */
-        /*     printf("\nError!\n[%d]%d\n", i, ran[i]); */
-        /*     print_root(&root); */
-        /*     return; */
-        /* } */
     }
 
     for(int i = 0; i < range; ++i) {
@@ -146,5 +96,6 @@ void test() {
 
 int main(void) {
     test_delete();
+    /* test(); */
     return 0;
 }
