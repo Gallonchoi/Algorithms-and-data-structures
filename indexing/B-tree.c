@@ -3,32 +3,6 @@
 #include <time.h>
 #include "b-tree.h"
 
-void print_root(b_tree * root) {
-    printf("root's key nums = %d\n", (*root)->key_num);
-    printf("root's child nums = %d\n", (*root)->child_num);
-    printf("root's keys: ");
-    for(int i = 0; i < (*root)->key_num; i++) {
-        printf("%d ", (*root)->key[i]);
-    }
-    b_tree child;
-    printf("\n");
-    for(int j = 0; j < (*root)->child_num; j++) {
-        child = (*root)->child[j];
-        printf("root's %dth child's key nums = %d\n", j, child->key_num);
-        printf("keys: ");
-        for(int i = 0; i < child->key_num; i++) {
-            printf("%d  ", child->key[i]);
-        }
-        printf("\n");
-    }
-    for(int j = 0; j < (*root)->child_num; j++) {
-        printf("----------\n");
-        if((*root)->child[j]->child_num > 0) {
-            print_root(&(*root)->child[j]);
-        }
-    }
-}
-
 void print(b_tree * t_node) {
     int key_num, child_num;
     key_num = (*t_node)->key_num;
@@ -37,7 +11,7 @@ void print(b_tree * t_node) {
         if(i < child_num) {
             print(&(*t_node)->child[i]);
         }
-        printf("%d ", (*t_node)->key[i]);
+        printf("%02d ", (*t_node)->key[i]);
     }
     if(key_num < child_num) {
         print(&(*t_node)->child[child_num - 1]);
@@ -61,7 +35,6 @@ void test_delete() {
     begin = 1;
     end = 50;
     for(int i = begin; i <= end; i++) {
-        /* print_root(&root); */
         insert(&root, i);
         printf("[%02d]: ", i);
         print(&root);
@@ -88,8 +61,35 @@ void test() {
         if(r.is_found == false) {
             printf("\nError!\n");
             printf("[%d]%d\n", i, ran[i]);
-            print_root(&root);
             return;
+        }
+    }
+}
+
+void test2() {
+    b_tree root;
+    create(&root);
+
+    for(int i = 0; i <= 50; i ++) {
+        insert(&root, i);
+    }
+
+    create(&root);
+    for(int j = 50; j >= 0; j --) {
+        insert(&root, j);
+    }
+
+    for(int i = 0; i <= 50; ++i) {
+        if(i == 24) {
+            printf("test\n");
+        }
+        result r = search(root, i);
+        if(r.is_found == false) {
+            printf("\nError!\n");
+            printf("[%d]\n", i);
+            return;
+        } else {
+            printf("GOOD: %d\n", i);
         }
     }
 }
@@ -97,5 +97,6 @@ void test() {
 int main(void) {
     test_delete();
     /* test(); */
+    /* test2(); */
     return 0;
 }

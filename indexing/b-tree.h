@@ -10,7 +10,7 @@ typedef enum {true, false} bool;
 
 typedef struct b_tree {
     int key_num;  // 关键字数目
-    int key[degree * 2 - 1];  // 关键字
+    int key[degree * 2];  // 关键字
     int child_num;  // 子结点数目
     struct b_tree * child[degree * 2];  // 子结点
 } b_tree_t, *b_tree;
@@ -195,6 +195,8 @@ result search_process(b_tree t_node, b_tree parent, int t_idx, int key) {
         // 查找目标关键字在当前结点中的索引
         idx ++;
     }
+    result r;
+    r.is_found = false;
     if(idx < t_node->key_num && key == t_node->key[idx]) {
         // 目标关键字在当前结点中
         if(parent && t_node->key_num < degree) {
@@ -202,7 +204,6 @@ result search_process(b_tree t_node, b_tree parent, int t_idx, int key) {
             balance(&parent, t_idx);
             return search(parent, key);
         }
-        result r;
         r.is_found = true;
         r.target_node = &t_node;
         r.idx = idx;
@@ -215,8 +216,6 @@ result search_process(b_tree t_node, b_tree parent, int t_idx, int key) {
         return r;
     } else if(t_node->child_num == 0 || t_node->child[idx] == NULL) {
         // 目标关键字不存在
-        result r;
-        r.is_found = false;
         return r;
     } else {
         // 目标关键字存在与当前结点的子结点中
@@ -291,7 +290,8 @@ void balance(b_tree * parent, int t_idx) {
                     // 兄弟结点为目标结点左兄弟
                     // 父结点关键字加入到目标结点中
                     if((*t_node)->child_num > 0) {
-                        (*t_node)->child[(*t_node)->child_num++] = (*t_node)->child[(*t_node)->child_num - 1];
+                        (*t_node)->child[(*t_node)->child_num] = (*t_node)->child[(*t_node)->child_num - 1];
+                        (*t_node)->child_num ++;
                     }
                     for(int i = (*t_node)->key_num; i > 0; i--) {
                         (*t_node)->key[i] = (*t_node)->key[i - 1];
@@ -374,13 +374,11 @@ void delete_process(b_tree * t_node, int idx, b_tree * parent, int p_idx) {
 void delete(b_tree * t_node, int key) {
     b_tree target;
     result r;
-    int idx;
     // 搜索目标关键字所在结点
     r = search(*t_node, key);
     if(r.is_found == true) {
         target = *(r.target_node);
-        idx = r.idx;
-        delete_process(&target, idx, r.parent_node, r.t_idx);
+        delete_process(&target, r.idx, r.parent_node, r.t_idx);
     }
 }
 #endif
