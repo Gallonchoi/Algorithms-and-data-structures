@@ -33,10 +33,22 @@ result search_process(b_tree t_node, b_tree p_node, int p_idx, int key);  // 搜
 void delete_process(b_tree * t_node, int idx, b_tree * parent, int p_idx);  // 删除关键字-子函数
 void balance(b_tree * parent, int t_idx);  // 平衡结点
 
+/**
+ * 检查结点关键字是否满
+ *
+ * @param t_node 目标结点
+ * @return bool
+ */
 bool is_full(b_tree t_node) {
     return (t_node->key_num == degree * 2 - 1) ? true : false;
 }
 
+/**
+ * 生成B树空根结点
+ *
+ * @param t_node 根结点
+ * @return void
+ */
 void create(b_tree * t_node) {
     *t_node = (b_tree) malloc (sizeof(b_tree_t));
     (*t_node)->child_num = 0;
@@ -45,9 +57,11 @@ void create(b_tree * t_node) {
 
 
 /**
- * @param t_node
- * @param parent
- * @param idx
+ * 分离结点
+ *
+ * @param t_node 目标结点
+ * @param parent 目标结点的父结点
+ * @param idx 父结点中待插入新关键字的索引
  * @return void
  */
 void split(b_tree * t_node, b_tree * parent, int idx) {
@@ -99,6 +113,13 @@ void split(b_tree * t_node, b_tree * parent, int idx) {
     }
 }
 
+/**
+ * 合并关键字
+ *
+ * @param parent 目标关键字所在结点
+ * @param idx 目标关键字在结点中的索引
+ * @return void
+ */
 void combine(b_tree * parent, int idx) {
     b_tree l_node, r_node;
     int key, new_key_num, new_child_num;
@@ -143,6 +164,13 @@ void combine(b_tree * parent, int idx) {
 }
 
 
+/**
+ * 插入关键字
+ *
+ * @param root 根结点
+ * @param key 目标关键字
+ * @return void
+ */
 void insert(b_tree * root, int key) {
     if( ! *root) {
         exit(1);
@@ -189,6 +217,15 @@ void insert(b_tree * root, int key) {
     }
 }
 
+/**
+ * 搜索关键字子函数
+ *
+ * @param t_node 目标结点
+ * @param parent 目标结点的父结点
+ * @param t_idx 目标结点在父结点中的索引
+ * @param key 目标关键字
+ * @return result
+ */
 result search_process(b_tree t_node, b_tree parent, int t_idx, int key) {
     int idx = 0;
     while(idx < t_node->key_num && key > t_node->key[idx]) {
@@ -228,17 +265,30 @@ result search_process(b_tree t_node, b_tree parent, int t_idx, int key) {
     }
 }
 
+/**
+ * 搜索结点
+ *
+ * @param t_node 目标结点
+ * @param key 目标关键字
+ * @return result
+ */
 result search(b_tree t_node, int key) {
     return search_process(t_node, NULL, 0, key);
 }
 
+/**
+ * 平衡结点
+ *
+ * @param parent 目标结点的父结点
+ * @param t_idx 目标结点在父结点中的索引
+ * @return void
+ */
 void balance(b_tree * parent, int t_idx) {
     b_tree * t_node;
     t_node = &(*parent)->child[t_idx];
     if((*t_node)->key_num < degree) {
         b_tree bro;  // 兄弟结点
         bool bro_is_left;
-        int b_key;
         bro = NULL;
         // 查找合适的兄弟结点
         if(t_idx > 0) {
@@ -317,10 +367,13 @@ void balance(b_tree * parent, int t_idx) {
 
 
 /**
+ * 删除子函数
+ *
  * @param t_node 目标结点
  * @param idx 目标关键字在目标结点中的索引
  * @param parant 目标结点的父结点
  * @param p_idx 目标结点在父结点中的索引
+ * @return void
  */
 void delete_process(b_tree * t_node, int idx, b_tree * parent, int p_idx) {
     int key = (*t_node)->key[idx];
@@ -371,6 +424,13 @@ void delete_process(b_tree * t_node, int idx, b_tree * parent, int p_idx) {
     }
 }
 
+/**
+ * 删除函数
+ *
+ * @param t_node 目标B树结点
+ * @param key 目标关键字
+ * @return void
+ */
 void delete(b_tree * t_node, int key) {
     b_tree target;
     result r;
@@ -380,5 +440,23 @@ void delete(b_tree * t_node, int key) {
         target = *(r.target_node);
         delete_process(&target, r.idx, r.parent_node, r.t_idx);
     }
+}
+
+/**
+ * 销毁树
+ *
+ * @param t_node 目标结点
+ * @return void
+ */
+void destroy(b_tree * t_node) {
+    if(t_node == NULL) {
+        return;
+    }
+    int idx;
+    for(idx = 0; idx < (*t_node)->child_num; idx ++) {
+        destroy(&(*t_node)->child[idx]);
+    }
+    free(*t_node);
+    *t_node = NULL;
 }
 #endif
